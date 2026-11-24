@@ -1,5 +1,5 @@
-const CACHE_NAME = 'beefshop-pos-v1';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+const CACHE_NAME = 'beefboy-pos-v3';
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './logo.jpg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -23,18 +23,16 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Network-first so updates on GitHub Pages always load fresh immediately
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const networkFetch = fetch(request)
-        .then((res) => {
-          if (res && res.status === 200) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || networkFetch;
-    })
+    fetch(request)
+      .then((res) => {
+        if (res && res.status === 200) {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(request))
   );
 });
